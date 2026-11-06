@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vacinação no Brasil</title>
+
+<!-- Tipografia: Fraunces (títulos) + IBM Plex Sans (texto corrido) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Arquivo CSS3 separado -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== CABEÇALHO / HERO ===================== -->
+<header class="hero">
+  <div class="hero__texto">
+    <h1>Vacinação no Brasil</h1>
+    <p class="hero__lide">
+      Cada dose aplicada é um registro em uma caderneta coletiva.
+      Pesquise abaixo pelo nome de uma vacina ou pela sua cidade
+      para chegar à página certa — mesmo que digite com um errinho
+      de digitação.
+    </p>
+  </div>
+
+  <!-- Selo decorativo (SVG inline, para poder usar as cores do CSS) -->
+  <div class="hero__selo" aria-hidden="true">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Selo institucional: anel duplo -->
+      <circle class="selo__fundo" cx="100" cy="100" r="92" />
+      <circle class="selo__anel" cx="100" cy="100" r="83" />
+
+      <!-- Gota na ponta da agulha -->
+      <path class="selo__gota" d="M160 48 Q166 56 166 60.5 Q166 66 160 66 Q154 66 154 60.5 Q154 56 160 48 Z" />
+
+      <!-- Seringa (desenhada na horizontal e girada) -->
+      <g transform="translate(94 80) rotate(-35) scale(0.78) translate(-100 -95)">
+        <!-- agulha e bico -->
+        <path class="selo__traco" d="M150 95 L190 95" />
+        <path class="selo__contorno selo__petroleo" d="M137 90 L150 93 L150 97 L137 100 Z" />
+        <!-- haste e apoio do dedo -->
+        <path class="selo__contorno selo__branco" d="M52 91 L30 91 L30 99 L52 99" />
+        <path class="selo__contorno selo__petroleo" d="M24 70 L32 70 L32 120 L24 120 Z" />
+        <!-- corpo -->
+        <path class="selo__contorno selo__branco" d="M58 70 L134 70 Q137 70 137 73 L137 117 Q137 120 134 120 L58 120 Z" />
+        <!-- líquido e êmbolo -->
+        <path class="selo__liquido" d="M92 79 L131 79 L131 111 L92 111 Z" />
+        <path class="selo__contorno selo__petroleo" d="M84 74 L92 74 L92 116 L84 116 Z" />
+        <!-- graduação -->
+        <path class="selo__escala" d="M96 71 L96 76 M104 71 L104 77 M112 71 L112 76 M120 71 L120 77 M128 71 L128 76" />
+        <!-- aba lateral -->
+        <path class="selo__contorno selo__petroleo" d="M52 62 L58 62 L58 128 L52 128 Z" />
+      </g>
+
+      <text x="100" y="154" class="selo__texto" text-anchor="middle">Vacinação</text>
+    </svg>
+  </div>
+</header>
+
+<!-- ===================== MENU FLUTUANTE DE BUSCA ===================== -->
+<!--
+  Este é o "menu flutuante" pedido no trabalho: um cartão que fica
+  sobreposto ao final do cabeçalho e continua visível (position: sticky)
+  enquanto a pessoa rola a página.
+
+  Espaço para imagem de fundo:
+  Defina a variável --imagem-menu-busca no style.css ou em uma tag
+  <style> própria, por exemplo:
+      .menu-flutuante__cartao { --imagem-menu-busca: url('sua-imagem.jpg'); }
+  Uma camada semitransparente (.menu-flutuante__cartao::before) garante
+  que o texto continue legível por cima da imagem.
+-->
+<section class="menu-flutuante" id="busca" aria-label="Busca de vacinas e cidades">
+  <div class="menu-flutuante__cartao">
+    <label for="campo-busca">Cidade ou vacina</label>
+    <div class="menu-flutuante__linha">
+      <input
+        type="text"
+        id="campo-busca"
+        name="busca"
+        placeholder="ex.: poliomielite, meningite, Campinas..."
+        autocomplete="off"
+        aria-describedby="dica-busca">
+      <button type="button" id="botao-buscar">Buscar</button>
+    </div>
+    <p class="menu-flutuante__dica" id="dica-busca">
+      A busca reconhece termos parecidos, então funciona mesmo com
+      pequenos erros de digitação.
+    </p>
+  </div>
+</section>
+
+<!-- ===================== RESULTADOS ===================== -->
+<section class="resultados" id="resultados" aria-live="polite">
+  <p class="resultados__vazio">
+    Digite o nome de uma vacina ou de uma cidade para começar.
+  </p>
+</section>
+
+<!-- ===================== PREVISÃO INTELIGENTE (IA) ===================== -->
+<!--
+  Painel que consome a API local em Python (FastAPI):
+  POST http://127.0.0.1:8000/predict
+  A lógica está em script.js, na função iniciarPrevisaoIA().
+  Os "value" do select de vacinas são exatamente os nomes que o
+  modelo conhece — não altere o value, só o texto exibido.
+-->
+<section class="previsao" id="previsao-ia" aria-labelledby="titulo-previsao">
+  <div class="previsao__cabecalho">
+    <h2 id="titulo-previsao">Previsão Inteligente de Cobertura Vacinal (IA)</h2>
+    <p>
+      Escolha a vacina, o mês alvo e informe a cobertura do mês anterior.
+      Um modelo Random Forest estima a cobertura prevista para o período.
+    </p>
+  </div>
+
+  <div class="previsao__grade">
+    <form class="previsao__form" id="form-previsao" novalidate>
+      <div class="previsao__campo">
+        <label for="previsao-vacina">Vacina</label>
+        <select id="previsao-vacina" name="imunobiologico" required>
+          <option value="" selected disabled>Selecione a vacina</option>
+          <option value="Amarela">Febre Amarela</option>
+          <option value="Bgc">BCG</option>
+          <option value="Meningo">Meningocócica</option>
+          <option value="Penumoconjugada">Pneumocócica Conjugada</option>
+          <option value="Penta">Pentavalente</option>
+          <option value="Pneumo">Pneumocócica</option>
+          <option value="Poliomielite 2026">Poliomielite</option>
+          <option value="Rotavirus">Rotavírus</option>
+          <option value="Vacinacao Triplice Viral 2026">Tríplice Viral</option>
+          <option value="Varicela1">Varicela</option>
+        </select>
+      </div>
+
+      <div class="previsao__campo">
+        <label for="previsao-mes">Mês da previsão</label>
+        <select id="previsao-mes" name="mes_numero" required>
+          <option value="" selected disabled>Selecione o mês</option>
+          <option value="1">Janeiro</option>
+          <option value="2">Fevereiro</option>
+          <option value="3">Março</option>
+          <option value="4">Abril</option>
+          <option value="5">Maio</option>
+          <option value="6">Junho</option>
+          <option value="7">Julho</option>
+          <option value="8">Agosto</option>
+          <option value="9">Setembro</option>
+          <option value="10">Outubro</option>
+          <option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
+      </div>
+
+      <div class="previsao__campo">
+        <label for="previsao-lag">Cobertura do mês anterior (%)</label>
+        <input
+          type="number"
+          id="previsao-lag"
+          name="lag_cobertura"
+          min="0"
+          max="100"
+          step="0.1"
+          inputmode="decimal"
+          placeholder="ex.: 75.0"
+          required>
+      </div>
+
+      <p class="previsao__erro-campo" id="previsao-erro-campo" role="alert"></p>
+
+      <button type="submit" class="previsao__botao" id="botao-previsao">
+        <span class="previsao__botao-texto">Simular previsão</span>
+        <span class="previsao__spinner previsao__spinner--botao" aria-hidden="true"></span>
+      </button>
+    </form>
+
+    <!-- A área abaixo muda conforme data-estado:
+         vazio | carregando | erro | resultado -->
+    <div class="previsao__resultado" id="previsao-resultado" data-estado="vazio" aria-live="polite">
+      <p class="previsao__vazio">
+        Preencha os campos e clique em “Simular previsão” para ver o resultado.
+      </p>
+
+      <div class="previsao__carregando">
+        <span class="previsao__spinner previsao__spinner--grande" aria-hidden="true"></span>
+        <p>Calculando previsão...</p>
+      </div>
+
+      <div class="previsao__erro">
+        <p class="previsao__erro-titulo">Não foi possível obter a previsão</p>
+        <p id="previsao-erro-texto"></p>
+      </div>
+
+      <div class="previsao__saida" id="previsao-saida" data-nivel="">
+        <p class="previsao__contexto" id="previsao-contexto"></p>
+        <p class="previsao__valor" id="previsao-valor"></p>
+        <span class="previsao__selo" id="previsao-selo"></span>
+        <div class="previsao__barra" aria-hidden="true">
+          <div class="previsao__barra-preenchimento" id="previsao-barra"></div>
+          <span class="previsao__marca previsao__marca--70"></span>
+          <span class="previsao__marca previsao__marca--90"></span>
+        </div>
+        <p class="previsao__legenda">Marcas da barra: 70% e 90%.</p>
+        <p class="previsao__delta" id="previsao-delta"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PAINEL DE DADOS (LOOKER STUDIO) ===================== -->
+<!--
+  O iframe do relatório fica dentro de #powerbi-container (o id foi mantido
+  para não mexer no script.js). Para trocar de relatório, substitua só o
+  endereço em src="...".
+-->
+<section class="painel-dados" id="painel-dados">
+  <div class="painel-dados__cabecalho">
+    <h2>Painel de dados</h2>
+    <p>
+      Relatório interativo com os dados de cobertura vacinal, feito no
+      Looker Studio.
+    </p>
+  </div>
+  <p class="painel-dados__filtro" id="painel-filtro" hidden>
+    Nenhum termo pesquisado ainda.
+  </p>
+  <div class="painel-dados__quadro painel-dados__quadro--relatorio" id="powerbi-container">
+    <iframe
+      title="Relatório de cobertura vacinal (Looker Studio)"
+      src="https://datastudio.google.com/embed/reporting/9520aede-b4ec-4f6d-9af2-4dea7a022ab0/page/n6ZCG"
+      loading="lazy"
+      allowfullscreen
+      sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox">
+    </iframe>
+  </div>
+</section>
+
+<footer class="rodape">
+  <p>Trabalho acadêmico sobre vacinação no Brasil.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
